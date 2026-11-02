@@ -1,0 +1,21 @@
+# Build outputs
+build/
+*/build/
+*.apk
+*.aab
+
+# Gradle
+.gradle/
+
+# IDE
+.idea/
+*.iml
+
+# Local config and secrets
+local.properties
+*.jks
+*.keystore
+*.b64
+
+# OS
+.DS_Store

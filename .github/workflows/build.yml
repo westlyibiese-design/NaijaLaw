@@ -1,0 +1,54 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Build debug APK
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Name the APK
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk NaijaLaw-debug.apk
+          ls -l NaijaLaw-debug.apk
+
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NaijaLaw-debug
+          path: NaijaLaw-debug.apk
+          if-no-files-found: error
+
+      - name: Publish rolling pre-release "latest"
+        run: |
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest NaijaLaw-debug.apk \
+            --prerelease \
+            --target "${{ github.sha }}" \
+            --title "NaijaLaw latest build" \
+            --notes "Rolling TEMPORARY debug build from commit ${{ github.sha }}. Download NaijaLaw-debug.apk and install it."

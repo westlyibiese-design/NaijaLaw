@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Phase 6 adds the chip labels. -->
+<resources>
+    <string name="app_name">NaijaLaw</string>
+    <string name="tagline">Sabi Your Rights</string>
+    <string name="home_search_hint">Search laws...</string>
+    <string name="law_tap_to_read">Tap to read in Pidgin</string>
+    <string name="law_coming_soon">Coming soon</string>
+    <string name="law_coming_soon_message">Dis law dey come soon.</string>
+    <string name="sections_search_hint">Search section or word</string>
+    <string name="chip_all">All</string>
+    <string name="no_results">No section match wetin you search.</string>
+    <string name="no_laws_match">No law match wetin you search.</string>
+    <string name="section_title_format">Section %1$s</string>
+    <string name="act_section_title_format">Act section %1$s</string>
+    <string name="pidgin_card_title">Wetin e mean (Pidgin)</string>
+    <string name="original_card_title">Original law text</string>
+    <string name="show_more">Show more</string>
+    <string name="show_less">Show less</string>
+    <string name="pidgin_missing">Pidgin explanation dey come.</string>
+    <string name="easy_note">Dis na easy explanation. E no be official law or lawyer advice.</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_favourites">Favourites</string>
+    <string name="nav_about">About</string>
+    <string name="favourites_title">Favourites</string>
+    <string name="favourites_subtitle">Your saved sections</string>
+    <string name="favourites_empty_title">You never save any section yet.</string>
+    <string name="favourites_empty_hint">Tap di star for any section to save am here.</string>
+    <string name="about_title">About NaijaLaw</string>
+    <string name="version_format">Version %1$s</string>
+    <string name="about_card1_title">Wetin dis app be</string>
+    <string name="about_card1_body">NaijaLaw dey explain Nigerian law in easy Pidgin.</string>
+    <string name="about_card2_title">Important notice</string>
+    <string name="about_card2_body">Dis Pidgin na only easy explanation, e no be official law or lawyer advice.</string>
+    <string name="about_card3_title">Where di law come from</string>
+    <string name="about_card3_body">Di first law na Criminal Code Act.</string>
+    <string name="about_row_offline">Works offline</string>
+    <string name="about_row_noai">No AI, no internet needed</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_text_size">Text size</string>
+    <string name="settings_text_preview">Dis na how di text go look.</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">Follow my phone</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="load_error">Something go wrong. Close di app and open am again.</string>
+    <string name="copyright">© Neribo Group</string>
+</resources>
