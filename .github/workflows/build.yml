@@ -1,4 +1,4 @@
-name: Build APK
+name: Build signed APK
 
 on:
   push:
@@ -12,9 +12,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
+      NAIJALAW_KEYSTORE_BASE64: ${{ secrets.NAIJALAW_KEYSTORE_BASE64 }}
+      NAIJALAW_KEYSTORE_PASSWORD: ${{ secrets.NAIJALAW_KEYSTORE_PASSWORD }}
+      NAIJALAW_KEY_ALIAS: ${{ secrets.NAIJALAW_KEY_ALIAS }}
+      NAIJALAW_KEY_PASSWORD: ${{ secrets.NAIJALAW_KEY_PASSWORD }}
       GH_TOKEN: ${{ github.token }}
 
     steps:
+      - name: Check signing secrets
+        run: |
+          missing=0
+          for name in NAIJALAW_KEYSTORE_BASE64 NAIJALAW_KEYSTORE_PASSWORD NAIJALAW_KEY_ALIAS NAIJALAW_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing GitHub secret: $name. Add it at https://github.com/${{ github.repository }}/settings/secrets/actions"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+          echo "All four signing secrets are present."
+
       - name: Check out code
         uses: actions/checkout@v4
 
@@ -29,26 +47,37 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      - name: Build debug APK
-        run: gradle :app:assembleDebug --stacktrace
+      - name: Decode keystore
+        run: |
+          echo "$NAIJALAW_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/naijalaw-release.jks"
+          echo "NAIJALAW_KEYSTORE_PATH=$RUNNER_TEMP/naijalaw-release.jks" >> "$GITHUB_ENV"
+
+      - name: Build signed release APK
+        run: gradle :app:assembleRelease --stacktrace
 
       - name: Name the APK
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk NaijaLaw-debug.apk
-          ls -l NaijaLaw-debug.apk
+          cp app/build/outputs/apk/release/app-release.apk NaijaLaw-1.0.apk
+          ls -l NaijaLaw-1.0.apk
+
+      - name: Verify APK signature
+        run: |
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+          echo "Using $APKSIGNER"
+          "$APKSIGNER" verify --print-certs NaijaLaw-1.0.apk
 
       - name: Upload APK as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NaijaLaw-debug
-          path: NaijaLaw-debug.apk
+          name: NaijaLaw-1.0
+          path: NaijaLaw-1.0.apk
           if-no-files-found: error
 
       - name: Publish rolling pre-release "latest"
         run: |
           gh release delete latest --cleanup-tag --yes || true
-          gh release create latest NaijaLaw-debug.apk \
+          gh release create latest NaijaLaw-1.0.apk \
             --prerelease \
             --target "${{ github.sha }}" \
             --title "NaijaLaw latest build" \
-            --notes "Rolling TEMPORARY debug build from commit ${{ github.sha }}. Download NaijaLaw-debug.apk and install it."
+            --notes "Rolling build from commit ${{ github.sha }}. Download NaijaLaw-1.0.apk and install it."
