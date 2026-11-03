@@ -21,7 +21,6 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,9 +44,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.westly.naijalaw.R
-import com.westly.naijalaw.core.data.AppData
-import com.westly.naijalaw.core.data.LawLoadState
 import com.westly.naijalaw.core.ui.AppHeader
+import com.westly.naijalaw.feature.detail.SectionDetailScreen
 import com.westly.naijalaw.feature.home.HomeScreen
 import com.westly.naijalaw.feature.sections.SectionsScreen
 
@@ -58,7 +56,7 @@ object Routes {
     const val FAVOURITES = "favourites"
     const val ABOUT = "about"
 
-    // Later phases register screens for these (not registered yet)
+    // Registered by Phase 6 (sections), Phase 7 (section); Phase 9 registers settings
     const val SECTIONS = "sections/{lawId}"
     const val SECTION = "section/{lawId}/{sectionId}"
     const val SETTINGS = "settings"
@@ -131,7 +129,7 @@ fun AppNavigation() {
                 )
             }
 
-            // Phase 7 replaces this placeholder with the real section page.
+            // The section page. No bottom bar here (it is not in Routes.bottomBarRoutes).
             composable(
                 route = Routes.SECTION,
                 arguments = listOf(
@@ -139,7 +137,8 @@ fun AppNavigation() {
                     navArgument("sectionId") { type = NavType.StringType },
                 ),
             ) { entry ->
-                SectionPlaceholder(
+                SectionDetailScreen(
+                    lawId = entry.arguments?.getString("lawId").orEmpty(),
                     sectionId = entry.arguments?.getString("sectionId").orEmpty(),
                     onBack = { navController.popBackStack() },
                 )
@@ -240,38 +239,6 @@ private fun TabPlaceholder(text: String) {
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground,
             )
-        }
-    }
-}
-
-/** Phase 7 replaces this with the real section page. Shows only the number and the title. */
-@Composable
-private fun SectionPlaceholder(sectionId: String, onBack: () -> Unit) {
-    val loadState by AppData.state.collectAsState()
-    val section = (loadState as? LawLoadState.Ready)?.index?.byId?.get(sectionId)
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        AppHeader(onBack = onBack)
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (section != null) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = section.displayNumber,
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    Text(
-                        text = section.title,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                }
-            }
         }
     }
 }

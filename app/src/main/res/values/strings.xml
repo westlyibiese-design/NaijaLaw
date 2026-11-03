@@ -55,5 +55,7 @@
     <string name="chip_general">General rules</string>
     <string name="clear_search">Clear search</string>
     <string name="back">Back</string>
+    <string name="fav_add">Save section</string>
+    <string name="fav_remove">Remove from favourites</string>
     <string name="copyright">© Neribo Group</string>
 </resources>
