@@ -100,3 +100,42 @@ private fun DrawScope.drawMagnifier(color: Color) {
         )
     }
 }
+
+/** Round green icon with a white download arrow (the "Works offline" row on the About screen). */
+@Composable
+fun DownloadBadgeIcon(modifier: Modifier = Modifier, size: Dp = 40.dp) {
+    Canvas(modifier = modifier.size(size)) {
+        drawCircle(color = NaijaGreen)
+        val round = StrokeCap.Round
+        withTransform({ scale(this.size.width / ICON_GRID, this.size.height / ICON_GRID, Offset.Zero) }) {
+            val white = Color.White
+            drawLine(white, Offset(12f, 6f), Offset(12f, 13.5f), strokeWidth = 2f, cap = round)
+            drawLine(white, Offset(8.3f, 10.2f), Offset(12f, 13.9f), strokeWidth = 2f, cap = round)
+            drawLine(white, Offset(15.7f, 10.2f), Offset(12f, 13.9f), strokeWidth = 2f, cap = round)
+            drawLine(white, Offset(7.5f, 17.5f), Offset(16.5f, 17.5f), strokeWidth = 2f, cap = round)
+        }
+    }
+}
+
+/** Round green icon with a white shield and a green tick (the "No AI" row on the About screen). */
+@Composable
+fun ShieldCheckBadgeIcon(modifier: Modifier = Modifier, size: Dp = 40.dp) {
+    Canvas(modifier = modifier.size(size)) {
+        drawCircle(color = NaijaGreen)
+        val round = StrokeCap.Round
+        withTransform({ scale(this.size.width / ICON_GRID, this.size.height / ICON_GRID, Offset.Zero) }) {
+            val shield = Path().apply {
+                moveTo(12f, 4.8f)
+                lineTo(17.6f, 6.9f)
+                lineTo(17.6f, 11.8f)
+                quadraticBezierTo(17.6f, 16.2f, 12f, 19.2f)
+                quadraticBezierTo(6.4f, 16.2f, 6.4f, 11.8f)
+                lineTo(6.4f, 6.9f)
+                close()
+            }
+            drawPath(path = shield, color = Color.White)
+            drawLine(NaijaGreen, Offset(9.3f, 12f), Offset(11.3f, 14f), strokeWidth = 1.8f, cap = round)
+            drawLine(NaijaGreen, Offset(11.3f, 14f), Offset(14.9f, 10f), strokeWidth = 1.8f, cap = round)
+        }
+    }
+}

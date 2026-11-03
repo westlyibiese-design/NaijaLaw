@@ -44,8 +44,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.westly.naijalaw.R
-import com.westly.naijalaw.core.ui.AppHeader
+import com.westly.naijalaw.core.data.LawCatalog
+import com.westly.naijalaw.feature.about.AboutScreen
 import com.westly.naijalaw.feature.detail.SectionDetailScreen
+import com.westly.naijalaw.feature.favourites.FavouritesScreen
 import com.westly.naijalaw.feature.home.HomeScreen
 import com.westly.naijalaw.feature.sections.SectionsScreen
 
@@ -113,8 +115,25 @@ fun AppNavigation() {
             composable(Routes.HOME) {
                 HomeScreen(onLawClick = { lawId -> navController.navigate(Routes.sections(lawId)) })
             }
-            composable(Routes.FAVOURITES) { TabPlaceholder(stringResource(R.string.nav_favourites)) }
-            composable(Routes.ABOUT) { TabPlaceholder(stringResource(R.string.nav_about)) }
+            composable(Routes.FAVOURITES) {
+                FavouritesScreen(
+                    onSectionClick = { sectionId ->
+                        navController.navigate(Routes.section(LawCatalog.CRIMINAL_CODE_ID, sectionId))
+                    },
+                )
+            }
+            composable(Routes.ABOUT) {
+                AboutScreen(
+                    // The back arrow goes to the Home tab (same way as tapping the Home tab).
+                    onBack = {
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+            }
 
             // No bottom bar on this route (it is not in Routes.bottomBarRoutes).
             composable(
@@ -217,27 +236,6 @@ private fun NaijaBottomBar(navController: NavHostController) {
                         )
                     }
                 },
-            )
-        }
-    }
-}
-
-/** Placeholder until Phase 8 builds the real Favourites and About screens. */
-@Composable
-private fun TabPlaceholder(text: String) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        // The header keeps the status bar icons readable (they are white on the green header).
-        AppHeader(title = text)
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
             )
         }
     }
