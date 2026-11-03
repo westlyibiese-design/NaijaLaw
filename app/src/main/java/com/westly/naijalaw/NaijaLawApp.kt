@@ -86,22 +86,27 @@ fun NaijaLawApp() {
 /**
  * Edge to edge with the right icon colours.
  *  - On the splash: light icons on the dark splash, dark icons on the light splash.
- *  - After the splash: icons that are readable on the page background
- *    (light icons in dark theme, dark icons in light theme).
- *    Phase 5 changes the status bar icons to white for the green header.
+ *  - After the splash: white status bar icons (the header is always green), and navigation bar
+ *    icons that are readable on the page background.
  */
 @Composable
 private fun SystemBars(darkTheme: Boolean, splashVisible: Boolean) {
     val activity = LocalContext.current as ComponentActivity
     DisposableEffect(darkTheme, splashVisible) {
         val transparent = android.graphics.Color.TRANSPARENT
-        val lightIcons = darkTheme   // same rule for the splash and for the page background
-        val style = if (lightIcons) {
+        // Navigation bar: light icons in dark theme, dark icons in light theme (splash and app).
+        val navigationStyle = if (darkTheme) {
             SystemBarStyle.dark(transparent)
         } else {
             SystemBarStyle.light(transparent, transparent)
         }
-        activity.enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+        // Status bar: follows the theme on the splash; white icons on the green header afterwards.
+        val statusStyle = if (splashVisible && !darkTheme) {
+            SystemBarStyle.light(transparent, transparent)
+        } else {
+            SystemBarStyle.dark(transparent)
+        }
+        activity.enableEdgeToEdge(statusBarStyle = statusStyle, navigationBarStyle = navigationStyle)
         onDispose { }
     }
 }

@@ -44,5 +44,6 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="load_error">Something go wrong. Close di app and open am again.</string>
+    <string name="back">Back</string>
     <string name="copyright">© Neribo Group</string>
 </resources>

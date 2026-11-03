@@ -2,10 +2,10 @@ package com.westly.naijalaw.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -36,11 +36,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.westly.naijalaw.R
+import com.westly.naijalaw.core.data.LawCatalog
+import com.westly.naijalaw.core.ui.AppHeader
+import com.westly.naijalaw.feature.home.HomeScreen
 
 /** The exact route strings of the app. */
 object Routes {
@@ -53,6 +58,9 @@ object Routes {
     const val SECTIONS = "sections/{lawId}"
     const val SECTION = "section/{lawId}/{sectionId}"
     const val SETTINGS = "settings"
+
+    /** The real route for one law, for example sections/criminal-code-act. */
+    fun sections(lawId: String): String = "sections/$lawId"
 
     /**
      * Routes that show the bottom menu. A route that is not in this set has no bottom bar,
@@ -97,9 +105,21 @@ fun AppNavigation() {
             startDestination = Routes.HOME,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable(Routes.HOME) { TabPlaceholder(stringResource(R.string.nav_home)) }
+            composable(Routes.HOME) {
+                HomeScreen(onLawClick = { lawId -> navController.navigate(Routes.sections(lawId)) })
+            }
             composable(Routes.FAVOURITES) { TabPlaceholder(stringResource(R.string.nav_favourites)) }
             composable(Routes.ABOUT) { TabPlaceholder(stringResource(R.string.nav_about)) }
+
+            // Phase 6 replaces this placeholder with the real Sections list.
+            // It has no bottom bar (the route is not in Routes.bottomBarRoutes) and shows a back arrow.
+            composable(
+                route = Routes.SECTIONS,
+                arguments = listOf(navArgument("lawId") { type = NavType.StringType }),
+            ) { entry ->
+                val lawId = entry.arguments?.getString("lawId").orEmpty()
+                SectionsPlaceholder(lawId = lawId, onBack = { navController.popBackStack() })
+            }
         }
     }
 }
@@ -179,19 +199,43 @@ private fun NaijaBottomBar(navController: NavHostController) {
     }
 }
 
-/** Phase 3 placeholder. Phases 5 and 8 replace these with the real screens. */
+/** Placeholder until Phase 8 builds the real Favourites and About screens. */
 @Composable
 private fun TabPlaceholder(text: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding(),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
+    Column(modifier = Modifier.fillMaxSize()) {
+        // The header keeps the status bar icons readable (they are white on the green header).
+        AppHeader(title = text)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+    }
+}
+
+/** Phase 6 replaces this with the real Sections list. */
+@Composable
+private fun SectionsPlaceholder(lawId: String, onBack: () -> Unit) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        AppHeader(title = LawCatalog.byId(lawId)?.name ?: lawId, onBack = onBack)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = lawId,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
     }
 }
