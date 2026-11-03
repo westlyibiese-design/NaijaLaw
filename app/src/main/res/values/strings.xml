@@ -44,6 +44,16 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="load_error">Something go wrong. Close di app and open am again.</string>
+    <string name="chip_killing">Killing</string>
+    <string name="chip_assault">Assault</string>
+    <string name="chip_stealing">Stealing</string>
+    <string name="chip_fraud">Fraud and forgery</string>
+    <string name="chip_public_order">Public order</string>
+    <string name="chip_corruption">Corruption</string>
+    <string name="chip_morality">Sex and morality</string>
+    <string name="chip_property">Fire and damage</string>
+    <string name="chip_general">General rules</string>
+    <string name="clear_search">Clear search</string>
     <string name="back">Back</string>
     <string name="copyright">© Neribo Group</string>
 </resources>

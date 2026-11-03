@@ -21,6 +21,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,9 +45,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.westly.naijalaw.R
-import com.westly.naijalaw.core.data.LawCatalog
+import com.westly.naijalaw.core.data.AppData
+import com.westly.naijalaw.core.data.LawLoadState
 import com.westly.naijalaw.core.ui.AppHeader
 import com.westly.naijalaw.feature.home.HomeScreen
+import com.westly.naijalaw.feature.sections.SectionsScreen
 
 /** The exact route strings of the app. */
 object Routes {
@@ -62,6 +65,9 @@ object Routes {
 
     /** The real route for one law, for example sections/criminal-code-act. */
     fun sections(lawId: String): String = "sections/$lawId"
+
+    /** The real route for one section, for example section/criminal-code-act/cca-316. */
+    fun section(lawId: String, sectionId: String): String = "section/$lawId/$sectionId"
 
     /**
      * Routes that show the bottom menu. A route that is not in this set has no bottom bar,
@@ -112,14 +118,31 @@ fun AppNavigation() {
             composable(Routes.FAVOURITES) { TabPlaceholder(stringResource(R.string.nav_favourites)) }
             composable(Routes.ABOUT) { TabPlaceholder(stringResource(R.string.nav_about)) }
 
-            // Phase 6 replaces this placeholder with the real Sections list.
-            // It has no bottom bar (the route is not in Routes.bottomBarRoutes) and shows a back arrow.
+            // No bottom bar on this route (it is not in Routes.bottomBarRoutes).
             composable(
                 route = Routes.SECTIONS,
                 arguments = listOf(navArgument("lawId") { type = NavType.StringType }),
             ) { entry ->
                 val lawId = entry.arguments?.getString("lawId").orEmpty()
-                SectionsPlaceholder(lawId = lawId, onBack = { navController.popBackStack() })
+                SectionsScreen(
+                    lawId = lawId,
+                    onBack = { navController.popBackStack() },
+                    onSectionClick = { sectionId -> navController.navigate(Routes.section(lawId, sectionId)) },
+                )
+            }
+
+            // Phase 7 replaces this placeholder with the real section page.
+            composable(
+                route = Routes.SECTION,
+                arguments = listOf(
+                    navArgument("lawId") { type = NavType.StringType },
+                    navArgument("sectionId") { type = NavType.StringType },
+                ),
+            ) { entry ->
+                SectionPlaceholder(
+                    sectionId = entry.arguments?.getString("sectionId").orEmpty(),
+                    onBack = { navController.popBackStack() },
+                )
             }
         }
     }
@@ -221,22 +244,34 @@ private fun TabPlaceholder(text: String) {
     }
 }
 
-/** Phase 6 replaces this with the real Sections list. */
+/** Phase 7 replaces this with the real section page. Shows only the number and the title. */
 @Composable
-private fun SectionsPlaceholder(lawId: String, onBack: () -> Unit) {
+private fun SectionPlaceholder(sectionId: String, onBack: () -> Unit) {
+    val loadState by AppData.state.collectAsState()
+    val section = (loadState as? LawLoadState.Ready)?.index?.byId?.get(sectionId)
+
     Column(modifier = Modifier.fillMaxSize()) {
-        AppHeader(title = LawCatalog.byId(lawId)?.name ?: lawId, onBack = onBack)
+        AppHeader(onBack = onBack)
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = lawId,
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+            if (section != null) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = section.displayNumber,
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                    Text(
+                        text = section.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
+            }
         }
     }
 }
