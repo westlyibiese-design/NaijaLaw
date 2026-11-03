@@ -7,7 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -18,9 +20,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.westly.naijalaw.core.data.AppData
+import com.westly.naijalaw.core.data.LawLoadState
 import com.westly.naijalaw.core.theme.NaijaLawTheme
 import com.westly.naijalaw.feature.splash.SplashScreen
 import com.westly.naijalaw.navigation.AppNavigation
@@ -41,6 +48,7 @@ fun NaijaLawApp() {
 
     // The splash leaves only when its animation is finished AND this is true.
     val dataReady by AppData.ready.collectAsState()
+    val loadState by AppData.state.collectAsState()
 
     var appComposed by remember { mutableStateOf(splashDone) }
     LaunchedEffect(Unit) {
@@ -57,7 +65,12 @@ fun NaijaLawApp() {
                 .background(MaterialTheme.colorScheme.background),
         ) {
             if (appComposed) {
-                AppNavigation()
+                // Safety net: after the splash, a failed load shows a message instead of the app.
+                if (splashDone && loadState is LawLoadState.Failed) {
+                    LoadErrorMessage()
+                } else {
+                    AppNavigation()
+                }
             }
             if (!splashDone) {
                 SplashScreen(
@@ -90,5 +103,24 @@ private fun SystemBars(darkTheme: Boolean, splashVisible: Boolean) {
         }
         activity.enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
         onDispose { }
+    }
+}
+
+/** Full-screen message shown only if the law file could not be loaded. It should never appear. */
+@Composable
+private fun LoadErrorMessage() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(32.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.load_error),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
+        )
     }
 }
