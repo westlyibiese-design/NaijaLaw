@@ -2,6 +2,9 @@ package com.westly.naijalaw.core.data
 
 import android.content.Context
 import com.westly.naijalaw.core.prefs.FavouritesRepository
+import com.westly.naijalaw.core.prefs.PreferencesRepository
+import com.westly.naijalaw.core.prefs.ThemeMode
+import com.westly.naijalaw.core.prefs.UserPreferences
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,8 +14,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
  * The app's data, loaded once on a background thread while the splash plays.
@@ -29,8 +35,15 @@ object AppData {
     private val favouritesLoaded = MutableStateFlow(false)
     private var favouritesRepository: FavouritesRepository? = null
 
+    // The user's Settings choices (theme and text size)
+    private val preferencesState = MutableStateFlow(UserPreferences())
+    private var preferencesRepository: PreferencesRepository? = null
+
     /** Loading, Ready (with the Criminal Code Act index) or Failed. */
     val state: StateFlow<LawLoadState> = loadState.asStateFlow()
+
+    /** The user's Settings choices. Changing them updates the whole app at once. */
+    val preferences: StateFlow<UserPreferences> = preferencesState.asStateFlow()
 
     /** The ids of the saved sections. Updates by itself whenever a star is tapped. */
     val favouriteIds: StateFlow<Set<String>> = favouritesState.asStateFlow()
@@ -49,6 +62,15 @@ object AppData {
         val appContext = context.applicationContext
         val repository = FavouritesRepository(appContext)
         favouritesRepository = repository
+
+        // One tiny blocking read, so the splash and the theme are right from the very first frame.
+        val preferencesRepo = PreferencesRepository(appContext)
+        preferencesRepository = preferencesRepo
+        preferencesState.value = try {
+            runBlocking { preferencesRepo.preferences.first() }
+        } catch (e: Exception) {
+            UserPreferences()
+        }
 
         scope.launch {
             loadState.value = try {
@@ -80,6 +102,30 @@ object AppData {
                 repository.toggle(id)
             } catch (e: Exception) {
                 // Nothing to do: the star simply stays as it was.
+            }
+        }
+    }
+
+    /** Light, dark or follow the phone. Applies at once and is remembered. */
+    fun setThemeMode(mode: ThemeMode) {
+        preferencesState.update { it.copy(themeMode = mode) }
+        savePreferences()
+    }
+
+    /** Text size step 0..4. Applies at once and is remembered. */
+    fun setTextSizeStep(step: Int) {
+        preferencesState.update { it.copy(textSizeStep = step.coerceIn(0, UserPreferences.TEXT_SIZE_STEPS - 1)) }
+        savePreferences()
+    }
+
+    // Saves the newest values when the write runs, so quick slider moves always end with the last one.
+    private fun savePreferences() {
+        val repository = preferencesRepository ?: return
+        scope.launch {
+            try {
+                repository.save(preferencesState.value)
+            } catch (e: Exception) {
+                // The choice still works until the app is closed.
             }
         }
     }

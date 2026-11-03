@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -23,11 +24,14 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.westly.naijalaw.core.data.AppData
 import com.westly.naijalaw.core.data.LawLoadState
+import com.westly.naijalaw.core.prefs.ThemeMode
 import com.westly.naijalaw.core.theme.NaijaLawTheme
 import com.westly.naijalaw.feature.splash.SplashScreen
 import com.westly.naijalaw.navigation.AppNavigation
@@ -40,8 +44,14 @@ import com.westly.naijalaw.navigation.AppNavigation
  */
 @Composable
 fun NaijaLawApp() {
-    // Follows the phone for now. Phase 9 adds the user's own light or dark choice here.
-    val darkTheme = isSystemInDarkTheme()
+    // The user's Settings choices (read before the first frame, see AppData.start).
+    val preferences by AppData.preferences.collectAsState()
+    val systemDark = isSystemInDarkTheme()
+    val darkTheme = when (preferences.themeMode) {
+        ThemeMode.DARK -> true
+        ThemeMode.LIGHT -> false
+        ThemeMode.SYSTEM -> systemDark
+    }
 
     // Survives rotation and theme changes, so the splash plays only once.
     var splashDone by rememberSaveable { mutableStateOf(false) }
@@ -66,10 +76,18 @@ fun NaijaLawApp() {
         ) {
             if (appComposed) {
                 // Safety net: after the splash, a failed load shows a message instead of the app.
-                if (splashDone && loadState is LawLoadState.Failed) {
-                    LoadErrorMessage()
-                } else {
-                    AppNavigation()
+                // The text size is controlled inside the app: the phone's own font size is not used,
+                // so a very large phone setting can never break the layout.
+                val currentDensity = LocalDensity.current
+                val appDensity = remember(currentDensity.density, preferences.textScale) {
+                    Density(density = currentDensity.density, fontScale = preferences.textScale)
+                }
+                CompositionLocalProvider(LocalDensity provides appDensity) {
+                    if (splashDone && loadState is LawLoadState.Failed) {
+                        LoadErrorMessage()
+                    } else {
+                        AppNavigation()
+                    }
                 }
             }
             if (!splashDone) {

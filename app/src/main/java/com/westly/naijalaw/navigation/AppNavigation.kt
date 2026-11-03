@@ -50,6 +50,7 @@ import com.westly.naijalaw.feature.detail.SectionDetailScreen
 import com.westly.naijalaw.feature.favourites.FavouritesScreen
 import com.westly.naijalaw.feature.home.HomeScreen
 import com.westly.naijalaw.feature.sections.SectionsScreen
+import com.westly.naijalaw.feature.settings.SettingsScreen
 
 /** The exact route strings of the app. */
 object Routes {
@@ -58,7 +59,7 @@ object Routes {
     const val FAVOURITES = "favourites"
     const val ABOUT = "about"
 
-    // Registered by Phase 6 (sections), Phase 7 (section); Phase 9 registers settings
+    // Registered by Phase 6 (sections), Phase 7 (section), Phase 9 (settings)
     const val SECTIONS = "sections/{lawId}"
     const val SECTION = "section/{lawId}/{sectionId}"
     const val SETTINGS = "settings"
@@ -124,6 +125,7 @@ fun AppNavigation() {
             }
             composable(Routes.ABOUT) {
                 AboutScreen(
+                    onSettingsClick = { navController.navigate(Routes.SETTINGS) },
                     // The back arrow goes to the Home tab (same way as tapping the Home tab).
                     onBack = {
                         navController.navigate(Routes.HOME) {
@@ -146,6 +148,11 @@ fun AppNavigation() {
                     onBack = { navController.popBackStack() },
                     onSectionClick = { sectionId -> navController.navigate(Routes.section(lawId, sectionId)) },
                 )
+            }
+
+            // Settings. No bottom bar here (it is not in Routes.bottomBarRoutes). Back returns to About.
+            composable(Routes.SETTINGS) {
+                SettingsScreen(onBack = { navController.popBackStack() })
             }
 
             // The section page. No bottom bar here (it is not in Routes.bottomBarRoutes).

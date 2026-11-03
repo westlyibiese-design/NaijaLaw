@@ -2,6 +2,7 @@ package com.westly.naijalaw.feature.about
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +49,7 @@ import com.westly.naijalaw.core.theme.NaijaGreenDeep
 import com.westly.naijalaw.core.theme.isDarkTheme
 import com.westly.naijalaw.core.ui.DownloadBadgeIcon
 import com.westly.naijalaw.core.ui.ScalesMark
+import com.westly.naijalaw.core.ui.SectionChevron
 import com.westly.naijalaw.core.ui.ShieldCheckBadgeIcon
 
 private val LightGreyStrip = Color(0xFFDDE1DE)
@@ -59,6 +62,7 @@ private val DarkGreyStrip = Color(0xFF3A5445)
 @Composable
 fun AboutScreen(
     onBack: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val dark = isDarkTheme()
@@ -148,6 +152,10 @@ fun AboutScreen(
             InfoRow(text = stringResource(R.string.about_row_offline)) { DownloadBadgeIcon() }
             Spacer(modifier = Modifier.height(8.dp))
             InfoRow(text = stringResource(R.string.about_row_noai)) { ShieldCheckBadgeIcon() }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsRow(onClick = onSettingsClick)
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -254,5 +262,39 @@ private fun InfoRow(text: String, icon: @Composable () -> Unit) {
             style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium, lineHeight = 24.sp),
             modifier = Modifier.weight(1f),
         )
+    }
+}
+
+/** A card-style row with a gear icon, the word Settings and a chevron. Opens the Settings screen. */
+@Composable
+private fun SettingsRow(onClick: () -> Unit) {
+    val shape = RoundedCornerShape(16.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+            .clickable(onClick = onClick)
+            .heightIn(min = 64.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Decorative: the word "Settings" next to it says what this is.
+        Icon(
+            imageVector = Icons.Filled.Settings,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(28.dp),
+        )
+        Text(
+            text = stringResource(R.string.settings_title),
+            color = MaterialTheme.colorScheme.onBackground,
+            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, lineHeight = 26.sp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp),
+        )
+        SectionChevron()
     }
 }
